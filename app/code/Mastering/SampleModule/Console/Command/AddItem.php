@@ -5,6 +5,7 @@ namespace Mastering\SampleModule\Console\Command;
 use Magento\Framework\Console\Cli;
 use Symfony\Component\Console\Command\Command;
 use Mastering\SampleModule\Model\ItemFactory;
+use Mastering\SampleModule\Model\ResourceModel\Item as ResourceItem;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
@@ -15,10 +16,12 @@ class AddItem extends Command
     const INPUT_KEY_DESCRIPTION = 'description';
 
     private $itemFactory;
+    private $resourceItem;
 
-    public function __construct(ItemFactory $itemFactory)
+    public function __construct(ItemFactory $itemFactory, ResourceItem $resourceItem)
     {
         $this->itemFactory = $itemFactory;
+        $this->resourceItem = $resourceItem;
         parent::__construct();
     }
 
@@ -44,8 +47,11 @@ class AddItem extends Command
         $item->setName($input->getArgument(self::INPUT_KEY_NAME));
         $item->setDescription($input->getArgument(self::INPUT_KEY_DESCRIPTION));
 
-        $item->setIsObjectNew = true;
-        $item->save();
+        try{
+            $this->resourceItem->save($item);
+        } catch (\Exception $e) {
+            return Cli::RETURN_FAILURE;
+        }
 
         return Cli::RETURN_SUCCESS;
     }
